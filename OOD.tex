@@ -1,14 +1,7 @@
 \documentclass[12pt, a4paper, oneside]{ctexart}
-\usepackage{hyperref}
-\usepackage{amsmath,amsthm,amssymb,graphicx,xcolor}
-\usepackage[ bookmarks=true,colorlinks,citecolor=blue,linkcolor=black ]{hyperref}
-\usepackage{float} 
-\hypersetup{hidelinks,
-	colorlinks=true,
-	allcolors=blue,
-	pdfstartview=Fit,
-	breaklinks=true}
-
+\usepackage{amsmath,amsthm,amssymb,graphicx,xcolor,float}
+\usepackage[bookmarks=true,colorlinks,linkcolor=black,urlcolor=black,citecolor=cyan]{hyperref}
+\usepackage{python}
 
 \title{OOD实验报告}
 \author{杨炫锟 523030910248}
@@ -18,6 +11,8 @@
 
 \maketitle
 \tableofcontents
+
+\hypersetup{linkcolor=blue,urlcolor=blue,citecolor=blue}
 
 \section{模型构建}
 
@@ -121,8 +116,8 @@
 
 \section{可视化分析}
 \subsection{参数敏感性及参数敏感性分析}
-在该分析中，我关闭了学习率优化器，分别选取学习率为\[0.0001,0.0005,0.0008,0.001,0.003\]epoch为\[1\~15\]在data-12上训练和验证\(3:1\)（各组取同样的随机数种子来shuffle数据），
-结果如下：
+在该分析中，我关闭了学习率优化器，分别选取学习率为\[0.0001,0.0005,0.0008,0.001,0.003\]epoch为1到15，在data-12上训练和验证\(3:1\)（各组取同样的随机数种子来shuffle数据），
+结果如下：\\
 在训练集上：
 \begin{figure}[H]  
     \begin{minipage}[H]{0.5\linewidth} % 图片占一行宽度0.5
@@ -213,6 +208,7 @@ test1、test2上的平均acc和loss
          \caption{Maxpooling 2}
       \end{minipage}
 \end{figure}
+可见，在最开始的几次操作中，是能够桥清楚地看出来数字的，到后来逐渐变得抽象和高度浓缩，这其实体现出了模型去“认识”图片的过程。
 
 特征图及卷积核作图格式参考：Larry同学（哔哩哔哩）
 
@@ -258,7 +254,15 @@ Grad\_cam作图参考：
 
 在该模块中，最初我看了一下关于IRM的论文及诸多阅读笔记（具体网址贴在下面），然后我的思路是在模型的输出中添加上预测环境标签的一项，对该标签的预测以及真实数字标签的预测的损失进行正则化，再去做Gradient Desent，
 但是，跑了很多次，结果都不理想。环境预测损失项的系数$\lambda$若是太小，容易受环境的影响，若是过大，真实标签预测的正确率又会过低。
-后来，我在GitHub上找到了一份开源的MNIST二分类的IRM实现，该博主对比了IRM和ERM两种思路下的训练和测试正确率，其中，博主使用了放缩过后的IRMv1，个人觉得很厉害的是，其中关于环境的penalty会随epoch来改变（系数 = 1.6*epoch），这个问题在那篇知乎中有提及，减小了overfitting的风险。
+后来，我在GitHub上找到了一份开源的MNIST二分类的IRM实现，该博主对比了IRM和ERM两种思路下的训练和测试正确率。
+
+关于该开源代码，我的解读有以下几点：
+\begin{enumerate}
+    \item 博主使用了放缩过后的IRMv1，个人觉得很厉害的是，其中关于环境的penalty会随epoch来改变（系数 = 1.6*epoch），这个问题在那篇知乎中有提及，减小了overfitting的风险
+    \item 注意求导的对象，应该是对dummy\_w，虚拟权重的值不会影响模型的预测结果，它只是在计算惩罚项时起到了一个辅助作用，个人觉得这就是原始IRMv1表达式中的w一项
+    \item loss要分奇偶去算，是因为传入的traindata奇偶索引处的环境不同，分别来自trainset1和trainset2
+    \item 在论文中，作者也给出了对应使用minibatch SGD的时候的一个获取“ unbiased estimate of the squared gradient norm”的方法，上述代码中都有体现
+\end{enumerate}
 
 在本地，我将源代码中的网络结构改成了LeNet二分类的形式，对最终结果作图分析，得到的结果如下：
 \begin{figure}[H]  
@@ -286,5 +290,6 @@ Grad\_cam作图参考：
     \item 通过本次实验，我对将来更深入的学习和研究激发了浓厚的兴趣，更有志于向前沿科研看齐
     \item 通过本次实验，我认识到在将来的工作中，与队友合作的重要性
 \end{enumerate}
+最后，我们将本次任务中的关键代码以及报告都打包上传至了GitHub上：\href{https://github.com/xuankunyang/OOD-on-MNIST}{GitHub主页}
 
 \end{document}
